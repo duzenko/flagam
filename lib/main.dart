@@ -1,3 +1,4 @@
+import 'package:flagam/province.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -29,36 +30,48 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final province = World.provinces.first;
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many qwe times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+        child: Container(
+          width: 512,
+          height: 512,
+          color: Colors.green,
+          child: Stack(
+            children: province.objects
+                .map(
+                  (ProvinceObject provinceObject) => Positioned(
+                    left: provinceObject.x.toDouble(),
+                    top: provinceObject.y.toDouble(),
+                    // width: provinceObject.size,
+                    // height: provinceObject.size,
+                    child: FilledButton(
+                      onPressed: () {},
+                      style: FilledButton.styleFrom(
+                          padding: EdgeInsets.all(provinceObject.size / 3)),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.ac_unit_rounded,
+                            size: provinceObject.size / 3,
+                          ),
+                          Text(
+                            provinceObject.mapName,
+                            softWrap: false,
+                            style: TextStyle(fontSize: provinceObject.size / 5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
