@@ -1,3 +1,4 @@
+import 'package:flagam/game/battle.dart';
 import 'package:flagam/game/province.dart';
 import 'package:flagam/widgets/battle_view.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +52,14 @@ class _ProvinceViewState extends State<ProvinceView> {
 
   Future<void> showBattleDialog(
       BuildContext context, ProvinceObject provinceObject) async {
-    final x = await showDialog(
+    Battle? battle = await showDialog(
       context: context,
       builder: (ctx) => const Dialog.fullscreen(
         backgroundColor: Colors.black54,
         child: BattleView(),
       ),
     );
-    if (x != null) {
+    if (battle != null && battle.enemy.hp <= 0) {
       setState(() {
         provinceObject.owner = World.player;
       });

@@ -4,6 +4,7 @@ abstract class UnitCard {
   String get image;
 
   String get name => runtimeType.toString();
+  int damage = 2;
 }
 
 class Peasant extends UnitCard {
@@ -23,21 +24,36 @@ class BattlePlayer {
   final attackingUnits = <UnitCard>[];
   final String image;
   final String name;
+  int hp = 10;
 
   BattlePlayer(this.unitsInHand, this.image, this.name);
 }
 
-abstract class Battle {
-  static final player = BattlePlayer([
+class Battle {
+  final player = BattlePlayer([
     SkeletonWarrior(),
     SkeletonWarrior(),
     SkeletonWarrior(),
   ], 'https://static.wikia.nocookie.net/officialbestiary/images/5/59/Revenant.jpg/revision/latest?cb=20150704015728',
       'Player');
-  static final enemy = BattlePlayer([
+  final enemy = BattlePlayer([
     Peasant(),
     Peasant(),
     Peasant(),
   ], 'https://static.wikia.nocookie.net/officialbestiary/images/5/56/Anouki1.png/revision/latest?cb=20150622175528',
       'Ilkebel');
+  bool _attackerIsPlayer = true;
+
+  BattlePlayer get attacker => _attackerIsPlayer ? player : enemy;
+
+  BattlePlayer get defender => _attackerIsPlayer ? enemy : player;
+
+  endRound() {
+    // returns true if battle is over
+    for (final au in attacker.attackingUnits) {
+      defender.hp -= au.damage;
+    }
+    if (defender.hp <= 0) return true;
+    _attackerIsPlayer = !_attackerIsPlayer;
+  }
 }

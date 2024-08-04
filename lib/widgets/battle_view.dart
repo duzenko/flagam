@@ -25,8 +25,10 @@ class UnitCardView extends StatelessWidget {
 
 class PlayerWithCardsView extends StatefulWidget {
   final BattlePlayer player;
+  final TextDirection textDirection;
 
-  const PlayerWithCardsView({super.key, required this.player});
+  const PlayerWithCardsView(
+      {super.key, required this.player, required this.textDirection});
 
   @override
   State<PlayerWithCardsView> createState() => _PlayerWithCardsViewState();
@@ -36,9 +38,7 @@ class _PlayerWithCardsViewState extends State<PlayerWithCardsView> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      textDirection: widget.player == Battle.player
-          ? TextDirection.rtl
-          : TextDirection.ltr,
+      textDirection: widget.textDirection,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Column(
@@ -46,7 +46,7 @@ class _PlayerWithCardsViewState extends State<PlayerWithCardsView> {
           children: [
             ...widget.player.attackingUnits.map(
               (unit) => InkWell(
-                onTap: widget.player == Battle.player
+                onTap: widget.textDirection == TextDirection.rtl
                     ? () => setState(() {
                           widget.player.attackingUnits.remove(unit);
                         })
@@ -75,7 +75,7 @@ class _PlayerWithCardsViewState extends State<PlayerWithCardsView> {
                 .where((u) => !widget.player.attackingUnits.contains(u))
                 .map(
                   (unit) => InkWell(
-                    onTap: widget.player == Battle.player
+                    onTap: widget.textDirection == TextDirection.rtl
                         ? () => setState(() {
                               widget.player.attackingUnits.add(unit);
                             })
@@ -90,50 +90,82 @@ class _PlayerWithCardsViewState extends State<PlayerWithCardsView> {
   }
 }
 
-class BattleView extends StatelessWidget {
+class BattleView extends StatefulWidget {
   const BattleView({
     super.key,
   });
 
   @override
+  State<BattleView> createState() => _BattleViewState();
+}
+
+class _BattleViewState extends State<BattleView> {
+  final battle = Battle();
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned.fill(
-          child: Container(
-            margin: const EdgeInsets.all(99),
-            padding: const EdgeInsets.all(99),
-            color: Colors.yellow,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                PlayerWithCardsView(player: Battle.player),
-                PlayerWithCardsView(player: Battle.enemy),
-              ],
+        LayoutBuilder(
+          builder: (context, constraints) => GestureDetector(
+            onTap: () => onDoubleTap(context),
+            behavior: HitTestBehavior.translucent,
+            child: Container(
+              margin: EdgeInsets.all(constraints.biggest.height * 0.1),
+              padding: EdgeInsets.all(constraints.biggest.height * 0.1),
+              color: Colors.green,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  PlayerWithCardsView(
+                      player: battle.player, textDirection: TextDirection.rtl),
+                  PlayerWithCardsView(
+                      player: battle.enemy, textDirection: TextDirection.ltr),
+                ],
+              ),
             ),
           ),
         ),
         const BackButton(color: Colors.amber),
         Positioned(
             bottom: 0,
-            child: ElevatedButton(
-                onPressed: () => winClick(context),
-                child: const Text('Win Quick'))),
-        Positioned(
-            bottom: 0,
             left: 0,
             right: 0,
             child: Text(
-              'Player attacks',
-              style: TextStyle(color: Colors.white, fontSize: 20),
+              battle.attacker == battle.player
+                  ? 'Player attacks'
+                  : 'Enemy attack',
+              style: const TextStyle(color: Colors.white, fontSize: 20),
               textAlign: TextAlign.center,
             )),
+        Positioned(
+            bottom: 0,
+            child: ElevatedButton(
+                onPressed: () => winClick(context),
+                child: const Text('Win Quick'))),
       ],
     );
   }
 
   void winClick(BuildContext context) {
     Navigator.of(context).pop(1);
+  }
+
+  var _lastClick = DateTime.now();
+
+  void onDoubleTap(BuildContext context) {
+    if (DateTime.now().difference(_lastClick).inMilliseconds > 300) {
+      _lastClick = DateTime.now();
+      return;
+    }
+    setState(() {
+      battle.endRound();
+    });
+    if (battle.defender.hp <= 0)
+      Navigator.of(context).pop(battle);
+    else
+      battle.player.attackingUnits.clear();
   }
 }
