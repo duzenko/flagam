@@ -9,14 +9,12 @@ abstract class UnitCard {
 
 class Peasant extends UnitCard {
   @override
-  get image =>
-      'https://static.wikia.nocookie.net/officialbestiary/images/8/89/Kobold1.jpg/revision/latest?cb=20150611153254';
+  get image => 'assets/units/скелет.png';
 }
 
 class SkeletonWarrior extends UnitCard {
   @override
-  get image =>
-      'https://static.wikia.nocookie.net/officialbestiary/images/f/fb/SkeletalWarrior1.jpg/revision/latest?cb=20150622155622';
+  get image => 'assets/units/скелет.png';
 }
 
 class BattlePlayer {
@@ -49,11 +47,9 @@ class Battle {
   BattlePlayer get defender => _attackerIsPlayer ? enemy : player;
 
   endRound() {
-    // returns true if battle is over
-    for (final au in attacker.attackingUnits) {
-      defender.hp -= au.damage;
-    }
+    attacker.attackingUnits.clear();
     if (defender.hp <= 0) return true;
     _attackerIsPlayer = !_attackerIsPlayer;
+    if (attacker == enemy) enemy.attackingUnits.add(enemy.unitsInHand.first);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flagam/game/battle.dart';
 import 'package:flagam/game/province.dart';
 import 'package:flagam/widgets/battle_view.dart';
@@ -13,7 +15,15 @@ class ProvinceView extends StatefulWidget {
 }
 
 class _ProvinceViewState extends State<ProvinceView> {
+  @override
+  initState() {
+    super.initState();
+    Timer.run(() => clickObject(context, widget.province.objects.last));
+  }
+
   clickObject(BuildContext context, ProvinceObject provinceObject) {
+    showBattleDialog(context, provinceObject);
+    return;
     if (provinceObject.owner == World.player) {
       showDialog(
         context: context,
@@ -50,15 +60,16 @@ class _ProvinceViewState extends State<ProvinceView> {
     );
   }
 
-  Future<void> showBattleDialog(
-      BuildContext context, ProvinceObject provinceObject) async {
-    Battle? battle = await showDialog(
-      context: context,
-      builder: (ctx) => const Dialog.fullscreen(
-        backgroundColor: Colors.black54,
-        child: BattleView(),
-      ),
-    );
+  Future<void> showBattleDialog(BuildContext context, ProvinceObject provinceObject) async {
+    Battle? battle = await Navigator.of(context).push(PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: true,
+        pageBuilder: (BuildContext context, _, __) {
+          return const Material(
+            color: Colors.transparent,
+            child: BattleView(),
+          );
+        }));
     if (battle != null && battle.enemy.hp <= 0) {
       setState(() {
         provinceObject.owner = World.player;
@@ -84,8 +95,7 @@ class _ProvinceViewState extends State<ProvinceView> {
                 child: FilledButton(
                   onPressed: () => clickObject(context, provinceObject),
                   style: FilledButton.styleFrom(
-                      backgroundColor:
-                          provinceObject.owner?.color ?? Colors.grey,
+                      backgroundColor: provinceObject.owner?.color ?? Colors.grey,
                       padding: EdgeInsets.all(provinceObject.size / 3)),
                   child: Column(
                     children: [
