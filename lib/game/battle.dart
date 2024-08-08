@@ -4,17 +4,24 @@ abstract class UnitCard {
   String get image;
 
   String get name => runtimeType.toString();
-  int damage = 2;
+
+  int get damage;
 }
 
 class Peasant extends UnitCard {
   @override
-  get image => 'assets/units/скелет.png';
+  get image => 'assets/units/medieval-peasant-cartoon-composition-vector-41944465.jpg';
+
+  @override
+  int get damage => 1;
 }
 
 class SkeletonWarrior extends UnitCard {
   @override
   get image => 'assets/units/скелет.png';
+
+  @override
+  int get damage => 2;
 }
 
 class BattlePlayer {

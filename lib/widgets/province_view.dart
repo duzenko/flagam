@@ -23,41 +23,40 @@ class _ProvinceViewState extends State<ProvinceView> {
 
   clickObject(BuildContext context, ProvinceObject provinceObject) {
     showBattleDialog(context, provinceObject);
-    return;
-    if (provinceObject.owner == World.player) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          content: Text('You own this ${provinceObject.mapName}'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Good'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        content: Text('Attack ${provinceObject.mapName}?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              showBattleDialog(context, provinceObject);
-            },
-            child: const Text('To Glory!'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Later'),
-          ),
-        ],
-      ),
-    );
+    // if (provinceObject.owner == World.player) {
+    //   showDialog(
+    //     context: context,
+    //     builder: (ctx) => AlertDialog(
+    //       content: Text('You own this ${provinceObject.mapName}'),
+    //       actions: [
+    //         TextButton(
+    //           onPressed: () => Navigator.of(context).pop(),
+    //           child: const Text('Good'),
+    //         ),
+    //       ],
+    //     ),
+    //   );
+    //   return;
+    // }
+    // showDialog(
+    //   context: context,
+    //   builder: (ctx) => AlertDialog(
+    //     content: Text('Attack ${provinceObject.mapName}?'),
+    //     actions: [
+    //       TextButton(
+    //         onPressed: () {
+    //           Navigator.of(context).pop();
+    //           showBattleDialog(context, provinceObject);
+    //         },
+    //         child: const Text('To Glory!'),
+    //       ),
+    //       TextButton(
+    //         onPressed: () => Navigator.of(context).pop(),
+    //         child: const Text('Later'),
+    //       ),
+    //     ],
+    //   ),
+    // );
   }
 
   Future<void> showBattleDialog(BuildContext context, ProvinceObject provinceObject) async {
@@ -74,9 +73,11 @@ class _ProvinceViewState extends State<ProvinceView> {
       setState(() {
         provinceObject.owner = World.player;
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('${provinceObject.mapName} is now yours!'), /**/
-      ));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${provinceObject.mapName} is now yours!'), /**/
+        ));
+      }
     }
   }
 
