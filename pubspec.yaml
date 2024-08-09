@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  local_hero:
+  align_positioned:
 
 dev_dependencies:
   flutter_test:

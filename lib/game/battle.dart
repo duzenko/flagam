@@ -1,9 +1,15 @@
 class BattleCard {}
 
 abstract class UnitCard {
+  late BattlePlayer _player;
+
+  int? attackIndex;
+
   String get image;
 
   String get name => runtimeType.toString();
+
+  BattlePlayer get player => _player;
 
   int get damage;
 }
@@ -16,7 +22,7 @@ class Peasant extends UnitCard {
   int get damage => 1;
 }
 
-class SkeletonWarrior extends UnitCard {
+class Skeleton extends UnitCard {
   @override
   get image => 'assets/units/скелет.png';
 
@@ -31,16 +37,17 @@ class BattlePlayer {
   final String name;
   int hp = 10;
 
-  BattlePlayer(this.unitsInHand, this.image, this.name);
+  BattlePlayer(this.unitsInHand, this.image, this.name) {
+    for (final unit in unitsInHand) unit._player = this;
+  }
 }
 
 class Battle {
   final player = BattlePlayer([
-    SkeletonWarrior(),
-    SkeletonWarrior(),
-    SkeletonWarrior(),
-  ], 'https://static.wikia.nocookie.net/officialbestiary/images/5/59/Revenant.jpg/revision/latest?cb=20150704015728',
-      'Player');
+    Skeleton(),
+    Skeleton(),
+    Skeleton(),
+  ], 'https://masterpiecer-images.s3.yandex.net/739bce5e7c8e11ee9fd7aaafe6635749:upscaled', 'Player');
   final enemy = BattlePlayer([
     Peasant(),
     Peasant(),
@@ -54,6 +61,7 @@ class Battle {
   BattlePlayer get defender => _attackerIsPlayer ? enemy : player;
 
   endRound() {
+    // attacker.unitsInHand.addAll(attacker.attackingUnits);
     attacker.attackingUnits.clear();
     if (defender.hp <= 0) return true;
     _attackerIsPlayer = !_attackerIsPlayer;

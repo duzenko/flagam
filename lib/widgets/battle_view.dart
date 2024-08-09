@@ -1,7 +1,11 @@
 import 'dart:async';
 
+import 'package:align_positioned/align_positioned.dart';
+import 'package:collection/collection.dart';
 import 'package:flagam/game/battle.dart';
 import 'package:flutter/material.dart';
+
+late BoxConstraints battleViewConstraints;
 
 class UnitCardView extends StatelessWidget {
   final UnitCard unit;
@@ -12,97 +16,39 @@ class UnitCardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Iterable<Widget> columnContent() sync* {
+      yield Expanded(child: Image.asset(unit.image, fit: BoxFit.fill));
+      yield Text(
+        unit.name,
+        softWrap: false,
+        style: TextStyle(
+          background: Paint()
+            ..color = Colors.deepPurple
+            ..strokeWidth = 20
+            ..strokeJoin = StrokeJoin.round
+            ..strokeCap = StrokeCap.round
+            ..style = PaintingStyle.stroke,
+          color: Colors.white,
+        ),
+      );
+      if (unit.player.attackingUnits.contains(unit)) {
+        yield Badge(
+          label: Text('${unit.player.attackingUnits.indexOf(unit) + 1}'),
+          child: Container(),
+        );
+      }
+    }
+
     final card = Card(
       child: Container(
+          width: battleViewConstraints.maxHeight / 7,
+          height: battleViewConstraints.maxHeight / 5 - 9,
           padding: const EdgeInsets.all(9),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(height: small ? 66 : 99, unit.image),
-              Text(unit.name, softWrap: false),
-            ],
+            children: columnContent().toList(),
           )),
     );
-    if (animation != null) {
-      return SizeTransition(sizeFactor: animation!, child: card);
-    }
     return card;
-  }
-}
-
-class PlayerWithCardsView extends StatefulWidget {
-  final BattlePlayer player;
-  final TextDirection textDirection;
-
-  const PlayerWithCardsView({super.key, required this.player, required this.textDirection});
-
-  @override
-  State<PlayerWithCardsView> createState() => _PlayerWithCardsViewState();
-}
-
-class _PlayerWithCardsViewState extends State<PlayerWithCardsView> {
-  final GlobalKey<AnimatedListState> _listKeyHand = GlobalKey<AnimatedListState>();
-  final GlobalKey<AnimatedListState> _listKeyAttk = GlobalKey<AnimatedListState>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      textDirection: widget.textDirection,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 99,
-          child: AnimatedList(
-            key: _listKeyAttk,
-            shrinkWrap: true,
-            itemBuilder: (BuildContext context, int index, Animation<double> animation) {
-              final unit = widget.player.attackingUnits[index];
-              return InkWell(
-                onTap: widget.textDirection == TextDirection.rtl
-                    ? () {
-                        _listKeyAttk.currentState!.removeItem(index,
-                            (BuildContext context, Animation<double> animation) {
-                          return UnitCardView(unit, animation: animation);
-                        });
-                        widget.player.attackingUnits.remove(unit);
-                        _listKeyHand.currentState!.insertItem(0);
-                      }
-                    : null,
-                child: Hero(tag: unit, child: UnitCardView(unit, animation: animation)),
-              );
-            },
-          ),
-        ),
-        Hero(
-          tag: widget.player,
-          child: PlayerCardView(player: widget.player),
-        ),
-        SizedBox(
-          width: 99,
-          child: AnimatedList(
-            key: _listKeyHand,
-            shrinkWrap: true,
-            initialItemCount: widget.player.unitsInHand.length,
-            itemBuilder: (BuildContext context, int index, Animation<double> animation) {
-              final unit = widget.player.unitsInHand[index];
-              return InkWell(
-                onTap: widget.textDirection == TextDirection.rtl
-                    ? () {
-                        _listKeyHand.currentState!.removeItem(index,
-                            (BuildContext context, Animation<double> animation) {
-                          return UnitCardView(unit, animation: animation);
-                        });
-                        widget.player.attackingUnits.add(unit);
-                        _listKeyAttk.currentState!.insertItem(0);
-                      }
-                    : null,
-                child: Hero(tag: unit, child: UnitCardView(unit, animation: animation)),
-              );
-            },
-          ),
-        ),
-      ],
-    );
   }
 }
 
@@ -148,24 +94,28 @@ class _BattleViewState extends State<BattleView> {
     return Stack(
       children: [
         LayoutBuilder(
-          builder: (context, constraints) => GestureDetector(
-            onTap: () => onDoubleTap(context),
-            behavior: HitTestBehavior.translucent,
-            child: Container(
-              margin: EdgeInsets.all(constraints.biggest.height * 0.1),
-              padding: EdgeInsets.all(constraints.biggest.height * 0.1),
-              color: Colors.green,
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  PlayerWithCardsView(player: battle.player, textDirection: TextDirection.rtl),
-                  PlayerWithCardsView(player: battle.enemy, textDirection: TextDirection.ltr),
-                ],
+          builder: (context, constraints) {
+            return GestureDetector(
+              onTap: () => onDoubleTap(context),
+              behavior: HitTestBehavior.translucent,
+              child: Container(
+                margin: EdgeInsets.all(constraints.biggest.height * 0.1),
+                color: Colors.green,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    battleViewConstraints = constraints;
+                    return Stack(
+                      children: [
+                        ...playerWidgets(battle.player),
+                        ...playerWidgets(battle.enemy),
+                        // Container(color: Colors.red.withOpacity(0.3)),
+                      ],
+                    );
+                  },
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         const BackButton(color: Colors.amber),
         Positioned(
@@ -194,44 +144,72 @@ class _BattleViewState extends State<BattleView> {
       _lastClick = DateTime.now();
       return;
     }
-    for (final au in battle.attacker.attackingUnits) {
-      Timer(const Duration(seconds: 1), () {
-        if (context.mounted) Navigator.of(context).pop;
+    for (final unit in battle.attacker.attackingUnits) {
+      setState(() {
+        _attackingUnit = unit;
       });
-      await Navigator.of(context).push(
-        PageRouteBuilder(
-            opaque: false,
-            barrierDismissible: true,
-            pageBuilder: (BuildContext context, _, __) {
-              return Material(
-                color: Colors.transparent,
-                child: Container(
-                  color: Colors.red.withOpacity(0.3),
-                  alignment: Alignment.center,
-                  child: Row(
-                    textDirection: battle.defender == battle.enemy ? TextDirection.ltr : TextDirection.rtl,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Hero(tag: au, child: UnitCardView(au)),
-                      const Text('⚔', style: TextStyle(fontSize: 32)),
-                      Hero(
-                        tag: battle.defender,
-                        child: PlayerCardView(player: battle.defender),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-      );
-      battle.defender.hp -= au.damage;
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        battle.defender.hp -= unit.damage;
+        _attackingUnit = null;
+      });
+      await Future.delayed(const Duration(seconds: 1));
     }
     setState(() {
       battle.endRound();
     });
     if (battle.defender.hp <= 0) {
       if (context.mounted) Navigator.of(context).pop(battle);
-    } else {}
+    } else {
+      //
+    }
+  }
+
+  final widgetKeys = <Object, Key>{};
+
+  UnitCard? _attackingUnit;
+
+  Iterable<Widget> playerWidgets(BattlePlayer player) sync* {
+    widgetKeys[player] ??= Key(player.name);
+    final isMe = battle.player == player;
+    final cx = (isMe ? -1 : 1) * battleViewConstraints.maxWidth / 5;
+
+    unitMapper(Iterable<UnitCard> list) {
+      return list.mapIndexed((index, unit) {
+        widgetKeys[unit] ??= Key(unit.hashCode.toString());
+        final ucx = cx + ((isMe ^ (list == player.attackingUnits)) ? -1 : 1) * battleViewConstraints.maxHeight / 6;
+        return AnimatedAlignPositioned(
+          key: widgetKeys[unit],
+          dx: _attackingUnit == unit ? ucx / 3 : ucx,
+          dy: (index - list.length / 2 + 0.5) * battleViewConstraints.maxHeight / 5,
+          alignment: Alignment.center,
+          moveByChildWidth: -0.5,
+          duration: const Duration(milliseconds: 444),
+          child: InkWell(
+              onTap: player == battle.enemy
+                  ? null
+                  : () => setState(() {
+                        if ((list == player.attackingUnits)) {
+                          // player.unitsInHand.add(unit);
+                          player.attackingUnits.remove(unit);
+                        } else {
+                          player.attackingUnits.add(unit);
+                          // player.unitsInHand.remove(unit);
+                        }
+                      }),
+              child: UnitCardView(unit)),
+        );
+      });
+    }
+
+    yield* unitMapper(player.unitsInHand.where((unit) => !player.attackingUnits.contains(unit)));
+    yield AnimatedAlignPositioned(
+      key: widgetKeys[player],
+      alignment: Alignment.center,
+      dx: _attackingUnit != null && player == battle.defender ? cx / 3 : cx + 5,
+      moveByChildWidth: -0.5,
+      child: PlayerCardView(player: player),
+    );
+    yield* unitMapper(player.attackingUnits);
   }
 }
