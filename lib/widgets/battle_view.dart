@@ -31,9 +31,10 @@ class UnitCardView extends StatelessWidget {
           color: Colors.white,
         ),
       );
-      if (unit.player.attackingUnits.contains(unit)) {
+      if (unit.player.activeUnits.contains(unit)) {
         yield Badge(
-          label: Text('${unit.player.attackingUnits.indexOf(unit) + 1}'),
+          label: Text(
+              '${unit.player.battle.attacker == unit.player ? '⚔' : '⛨'}${unit.player.activeUnits.indexOf(unit) + 1}'),
           child: Container(),
         );
       }
@@ -105,10 +106,11 @@ class _BattleViewState extends State<BattleView> {
                   builder: (context, constraints) {
                     battleViewConstraints = constraints;
                     return Stack(
+                      alignment: Alignment.center,
                       children: [
                         ...playerWidgets(battle.player),
                         ...playerWidgets(battle.enemy),
-                        // Container(color: Colors.red.withOpacity(0.3)),
+                        if (_attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),
                       ],
                     );
                   },
@@ -144,15 +146,17 @@ class _BattleViewState extends State<BattleView> {
       _lastClick = DateTime.now();
       return;
     }
-    for (final unit in battle.attacker.attackingUnits) {
+    for (final unit in battle.attacker.activeUnits) {
       setState(() {
         _attackingUnit = unit;
+        _lastAttacker = unit;
       });
       await Future.delayed(const Duration(seconds: 1));
       setState(() {
-        battle.defender.hp -= unit.damage;
+        if (!battle.isAttackerBlocked(unit)) battle.defender.hp -= unit.damage;
         _attackingUnit = null;
       });
+      if (battle.defender.hp < -0) break;
       await Future.delayed(const Duration(seconds: 1));
     }
     setState(() {
@@ -167,34 +171,52 @@ class _BattleViewState extends State<BattleView> {
 
   final widgetKeys = <Object, Key>{};
 
-  UnitCard? _attackingUnit;
+  UnitCard? _attackingUnit, _lastAttacker;
 
   Iterable<Widget> playerWidgets(BattlePlayer player) sync* {
     widgetKeys[player] ??= Key(player.name);
     final isMe = battle.player == player;
     final cx = (isMe ? -1 : 1) * battleViewConstraints.maxWidth / 5;
-
     unitMapper(Iterable<UnitCard> list) {
-      return list.mapIndexed((index, unit) {
+      return list
+          .sorted((a, b) => a == _lastAttacker
+              ? 1
+              : b == _lastAttacker
+                  ? -1
+                  : 0)
+          .map((unit) {
+        final index = list.toList().indexOf(unit);
         widgetKeys[unit] ??= Key(unit.hashCode.toString());
-        final ucx = cx + ((isMe ^ (list == player.attackingUnits)) ? -1 : 1) * battleViewConstraints.maxHeight / 6;
+        final ucx = cx + ((isMe ^ (list == player.activeUnits)) ? -1 : 1) * battleViewConstraints.maxHeight / 6;
+        bool isFighting = false;
+        if (_attackingUnit != null) {
+          isFighting = _attackingUnit == unit;
+          if (!isFighting && unit.player == battle.defender) {
+            final index = battle.attacker.activeUnits.indexOf(_attackingUnit!);
+            if (player.activeUnits.length > index) isFighting = player.activeUnits[index] == unit;
+          }
+        }
         return AnimatedAlignPositioned(
           key: widgetKeys[unit],
-          dx: _attackingUnit == unit ? ucx / 3 : ucx,
-          dy: (index - list.length / 2 + 0.5) * battleViewConstraints.maxHeight / 5,
+          dx: isFighting ? 0 : ucx,
+          dy: isFighting ? 0 : (index - list.length / 2 + 0.5) * battleViewConstraints.maxHeight / 5,
           alignment: Alignment.center,
-          moveByChildWidth: -0.5,
+          moveByChildWidth: isFighting ? (isMe ? -1 : 1) * 0.7 : 0,
           duration: const Duration(milliseconds: 444),
           child: InkWell(
               onTap: player == battle.enemy
                   ? null
                   : () => setState(() {
-                        if ((list == player.attackingUnits)) {
-                          // player.unitsInHand.add(unit);
-                          player.attackingUnits.remove(unit);
+                        if ((list == player.activeUnits)) {
+                          player.activeUnits.remove(unit);
                         } else {
-                          player.attackingUnits.add(unit);
-                          // player.unitsInHand.remove(unit);
+                          player.activeUnits.add(unit);
+                          if (player == battle.defender &&
+                              player.activeUnits.length > battle.attacker.activeUnits.length) {
+                            Future.delayed(const Duration(milliseconds: 99)).then((_) => setState(() {
+                                  player.activeUnits.remove(unit);
+                                }));
+                          }
                         }
                       }),
               child: UnitCardView(unit)),
@@ -202,14 +224,19 @@ class _BattleViewState extends State<BattleView> {
       });
     }
 
-    yield* unitMapper(player.unitsInHand.where((unit) => !player.attackingUnits.contains(unit)));
+    yield* unitMapper(player.unitsInHand.where((unit) => !player.activeUnits.contains(unit)));
+    bool isDefending = _attackingUnit != null && player == battle.defender;
+    if (isDefending) {
+      isDefending = !battle.isAttackerBlocked(_attackingUnit!);
+    }
     yield AnimatedAlignPositioned(
       key: widgetKeys[player],
       alignment: Alignment.center,
-      dx: _attackingUnit != null && player == battle.defender ? cx / 3 : cx + 5,
-      moveByChildWidth: -0.5,
+      dx: isDefending ? 0 : cx,
+      moveByChildWidth: isDefending ? (isMe ? -1 : 1) * 0.7 : 0,
+      // moveByChildWidth: -0.5,
       child: PlayerCardView(player: player),
     );
-    yield* unitMapper(player.attackingUnits);
+    yield* unitMapper(player.activeUnits);
   }
 }

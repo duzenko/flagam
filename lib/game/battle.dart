@@ -3,8 +3,6 @@ class BattleCard {}
 abstract class UnitCard {
   late BattlePlayer _player;
 
-  int? attackIndex;
-
   String get image;
 
   String get name => runtimeType.toString();
@@ -32,14 +30,17 @@ class Skeleton extends UnitCard {
 
 class BattlePlayer {
   final List<UnitCard> unitsInHand;
-  final attackingUnits = <UnitCard>[];
+  final activeUnits = <UnitCard>[];
   final String image;
   final String name;
   int hp = 10;
+  late Battle _battle;
 
   BattlePlayer(this.unitsInHand, this.image, this.name) {
     for (final unit in unitsInHand) unit._player = this;
   }
+
+  Battle get battle => _battle;
 }
 
 class Battle {
@@ -60,11 +61,21 @@ class Battle {
 
   BattlePlayer get defender => _attackerIsPlayer ? enemy : player;
 
+  Battle() {
+    player._battle = this;
+    enemy._battle = this;
+  }
+
   endRound() {
-    // attacker.unitsInHand.addAll(attacker.attackingUnits);
-    attacker.attackingUnits.clear();
+    attacker.activeUnits.clear();
+    defender.activeUnits.clear();
     if (defender.hp <= 0) return true;
     _attackerIsPlayer = !_attackerIsPlayer;
-    if (attacker == enemy) enemy.attackingUnits.add(enemy.unitsInHand.first);
+    if (attacker == enemy && enemy.unitsInHand.isNotEmpty) enemy.activeUnits.add(enemy.unitsInHand.first);
+  }
+
+  bool isAttackerBlocked(UnitCard attackingUnit) {
+    final index = attacker.activeUnits.indexOf(attackingUnit);
+    return defender.activeUnits.length > index;
   }
 }
