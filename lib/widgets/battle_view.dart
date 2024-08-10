@@ -17,20 +17,20 @@ class UnitCardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Iterable<Widget> columnContent() sync* {
-      yield Expanded(child: Image.asset(unit.image, fit: BoxFit.fill));
-      yield Text(
-        unit.name,
-        softWrap: false,
-        style: TextStyle(
-          background: Paint()
-            ..color = Colors.deepPurple
-            ..strokeWidth = 20
-            ..strokeJoin = StrokeJoin.round
-            ..strokeCap = StrokeCap.round
-            ..style = PaintingStyle.stroke,
-          color: Colors.white,
-        ),
-      );
+      yield Expanded(child: Image.asset(unit.image));
+      // yield Text(
+      //   unit.name,
+      //   softWrap: false,
+      //   style: TextStyle(
+      //     background: Paint()
+      //       ..color = Colors.deepPurple
+      //       ..strokeWidth = 20
+      //       ..strokeJoin = StrokeJoin.round
+      //       ..strokeCap = StrokeCap.round
+      //       ..style = PaintingStyle.stroke,
+      //     color: Colors.white,
+      //   ),
+      // );
       if (unit.player.activeUnits.contains(unit)) {
         yield Badge(
           label: Text(
@@ -88,7 +88,7 @@ class BattleView extends StatefulWidget {
 }
 
 class _BattleViewState extends State<BattleView> {
-  final battle = Battle();
+  late final battle = Battle(() => setState(() {}));
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +110,7 @@ class _BattleViewState extends State<BattleView> {
                       children: [
                         ...playerWidgets(battle.player),
                         ...playerWidgets(battle.enemy),
-                        if (_attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),
+                        if (battle.stage?.attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),
                       ],
                     );
                   },
@@ -140,28 +140,16 @@ class _BattleViewState extends State<BattleView> {
   }
 
   var _lastClick = DateTime.now();
+  bool inputDisabled = false;
 
   Future<void> onDoubleTap(BuildContext context) async {
-    if (DateTime.now().difference(_lastClick).inMilliseconds > 300) {
+    if (inputDisabled || DateTime.now().difference(_lastClick).inMilliseconds > 300) {
       _lastClick = DateTime.now();
       return;
     }
-    for (final unit in battle.attacker.activeUnits) {
-      setState(() {
-        _attackingUnit = unit;
-        _lastAttacker = unit;
-      });
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() {
-        if (!battle.isAttackerBlocked(unit)) battle.defender.hp -= unit.damage;
-        _attackingUnit = null;
-      });
-      if (battle.defender.hp < -0) break;
-      await Future.delayed(const Duration(seconds: 1));
-    }
-    setState(() {
-      battle.endRound();
-    });
+    inputDisabled = true;
+    await battle.playTurn();
+    inputDisabled = false;
     if (battle.defender.hp <= 0) {
       if (context.mounted) Navigator.of(context).pop(battle);
     } else {
@@ -171,28 +159,28 @@ class _BattleViewState extends State<BattleView> {
 
   final widgetKeys = <Object, Key>{};
 
-  UnitCard? _attackingUnit, _lastAttacker;
-
   Iterable<Widget> playerWidgets(BattlePlayer player) sync* {
     widgetKeys[player] ??= Key(player.name);
     final isMe = battle.player == player;
     final cx = (isMe ? -1 : 1) * battleViewConstraints.maxWidth / 5;
     unitMapper(Iterable<UnitCard> list) {
-      return list
-          .sorted((a, b) => a == _lastAttacker
-              ? 1
-              : b == _lastAttacker
-                  ? -1
-                  : 0)
-          .map((unit) {
+      var list2 = list;
+      if (battle.stage != null) {
+        list2 = list.sorted((a, b) => a == battle.stage!.lastAttacker
+            ? 1
+            : b == battle.stage!.lastAttacker
+                ? -1
+                : 0);
+      }
+      return list2.map((unit) {
         final index = list.toList().indexOf(unit);
         widgetKeys[unit] ??= Key(unit.hashCode.toString());
         final ucx = cx + ((isMe ^ (list == player.activeUnits)) ? -1 : 1) * battleViewConstraints.maxHeight / 6;
         bool isFighting = false;
-        if (_attackingUnit != null) {
-          isFighting = _attackingUnit == unit;
+        if (battle.stage?.attackingUnit != null) {
+          isFighting = battle.stage!.attackingUnit == unit;
           if (!isFighting && unit.player == battle.defender) {
-            final index = battle.attacker.activeUnits.indexOf(_attackingUnit!);
+            final index = battle.attacker.activeUnits.indexOf(battle.stage!.attackingUnit!);
             if (player.activeUnits.length > index) isFighting = player.activeUnits[index] == unit;
           }
         }
@@ -204,30 +192,15 @@ class _BattleViewState extends State<BattleView> {
           moveByChildWidth: isFighting ? (isMe ? -1 : 1) * 0.7 : 0,
           duration: const Duration(milliseconds: 444),
           child: InkWell(
-              onTap: player == battle.enemy
-                  ? null
-                  : () => setState(() {
-                        if ((list == player.activeUnits)) {
-                          player.activeUnits.remove(unit);
-                        } else {
-                          player.activeUnits.add(unit);
-                          if (player == battle.defender &&
-                              player.activeUnits.length > battle.attacker.activeUnits.length) {
-                            Future.delayed(const Duration(milliseconds: 99)).then((_) => setState(() {
-                                  player.activeUnits.remove(unit);
-                                }));
-                          }
-                        }
-                      }),
-              child: UnitCardView(unit)),
+              onTap: player == battle.enemy ? null : () => battle.toggleUnitActive(unit), child: UnitCardView(unit)),
         );
       });
     }
 
     yield* unitMapper(player.unitsInHand.where((unit) => !player.activeUnits.contains(unit)));
-    bool isDefending = _attackingUnit != null && player == battle.defender;
+    bool isDefending = battle.stage?.attackingUnit != null && player == battle.defender;
     if (isDefending) {
-      isDefending = !battle.isAttackerBlocked(_attackingUnit!);
+      isDefending = !battle.isAttackerBlocked(battle.stage!.attackingUnit!);
     }
     yield AnimatedAlignPositioned(
       key: widgetKeys[player],

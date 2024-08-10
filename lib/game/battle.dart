@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 class BattleCard {}
 
 abstract class UnitCard {
@@ -37,10 +39,17 @@ class BattlePlayer {
   late Battle _battle;
 
   BattlePlayer(this.unitsInHand, this.image, this.name) {
-    for (final unit in unitsInHand) unit._player = this;
+    for (final unit in unitsInHand) {
+      unit._player = this;
+    }
   }
 
   Battle get battle => _battle;
+}
+
+class BattleActiveStage {
+  UnitCard? attackingUnit;
+  UnitCard? lastAttacker;
 }
 
 class Battle {
@@ -57,13 +66,35 @@ class Battle {
       'Ilkebel');
   bool _attackerIsPlayer = true;
 
+  VoidCallback onChangeNotifier;
+
   BattlePlayer get attacker => _attackerIsPlayer ? player : enemy;
 
   BattlePlayer get defender => _attackerIsPlayer ? enemy : player;
 
-  Battle() {
+  BattleActiveStage? stage;
+
+  Battle(this.onChangeNotifier) {
     player._battle = this;
     enemy._battle = this;
+  }
+
+  playTurn() async {
+    stage = BattleActiveStage();
+    for (final unit in attacker.activeUnits) {
+      stage!.attackingUnit = unit;
+      stage!.lastAttacker = unit;
+      onChangeNotifier();
+      await Future.delayed(const Duration(seconds: 1));
+      if (!isAttackerBlocked(unit)) defender.hp -= unit.damage;
+      stage!.attackingUnit = null;
+      onChangeNotifier();
+      if (defender.hp < -0) break;
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    stage = null;
+    endRound();
+    onChangeNotifier();
   }
 
   endRound() {
@@ -77,5 +108,20 @@ class Battle {
   bool isAttackerBlocked(UnitCard attackingUnit) {
     final index = attacker.activeUnits.indexOf(attackingUnit);
     return defender.activeUnits.length > index;
+  }
+
+  toggleUnitActive(UnitCard unit) {
+    if ((unit.player.activeUnits.contains(unit))) {
+      unit.player.activeUnits.remove(unit);
+    } else {
+      unit.player.activeUnits.add(unit);
+      if (unit.player == defender && unit.player.activeUnits.length > attacker.activeUnits.length) {
+        Future.delayed(const Duration(milliseconds: 99)).then((_) {
+          unit.player.activeUnits.remove(unit);
+          onChangeNotifier();
+        });
+      }
+    }
+    onChangeNotifier();
   }
 }
