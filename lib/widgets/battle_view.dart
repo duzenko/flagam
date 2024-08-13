@@ -18,19 +18,6 @@ class UnitCardView extends StatelessWidget {
   Widget build(BuildContext context) {
     Iterable<Widget> columnContent() sync* {
       yield Expanded(child: Image.asset(unit.image));
-      // yield Text(
-      //   unit.name,
-      //   softWrap: false,
-      //   style: TextStyle(
-      //     background: Paint()
-      //       ..color = Colors.deepPurple
-      //       ..strokeWidth = 20
-      //       ..strokeJoin = StrokeJoin.round
-      //       ..strokeCap = StrokeCap.round
-      //       ..style = PaintingStyle.stroke,
-      //     color: Colors.white,
-      //   ),
-      // );
       if (unit.player.activeUnits.contains(unit)) {
         yield Badge(
           label: Text(
@@ -71,7 +58,13 @@ class PlayerCardView extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.network(height: 111, player.image),
-              Text('${player.name} ${player.hp}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(player.name),
+                  Text('♥${player.hp}'),
+                ],
+              ),
             ],
           )),
     );
@@ -89,6 +82,12 @@ class BattleView extends StatefulWidget {
 
 class _BattleViewState extends State<BattleView> {
   late final battle = Battle(() => setState(() {}));
+
+  @override
+  void dispose() {
+    battle.onChangeNotifier = () {};
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +110,7 @@ class _BattleViewState extends State<BattleView> {
                         ...playerWidgets(battle.player),
                         ...playerWidgets(battle.enemy),
                         if (battle.stage?.attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),
+                        if (_infoUnit != null) UnitInfoView(_infoUnit!),
                       ],
                     );
                   },
@@ -121,16 +121,20 @@ class _BattleViewState extends State<BattleView> {
         ),
         const BackButton(color: Colors.amber),
         Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Text(
-              battle.attacker == battle.player ? 'Player attacks' : 'Enemy attacks',
-              style: const TextStyle(color: Colors.white, fontSize: 20),
-              textAlign: TextAlign.center,
+            bottom: 5,
+            left: 9,
+            right: 9,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(onPressed: () => winClick(context), child: const Text('Win Quick')),
+                Text(
+                  battle.attacker == battle.player ? 'Player attacks' : 'Enemy attacks',
+                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             )),
-        Positioned(
-            bottom: 0, child: ElevatedButton(onPressed: () => winClick(context), child: const Text('Win Quick'))),
       ],
     );
   }
@@ -141,6 +145,7 @@ class _BattleViewState extends State<BattleView> {
 
   var _lastClick = DateTime.now();
   bool inputDisabled = false;
+  UnitCard? _infoUnit;
 
   Future<void> onDoubleTap(BuildContext context) async {
     if (inputDisabled || DateTime.now().difference(_lastClick).inMilliseconds > 300) {
@@ -192,7 +197,12 @@ class _BattleViewState extends State<BattleView> {
           moveByChildWidth: isFighting ? (isMe ? -1 : 1) * 0.7 : 0,
           duration: const Duration(milliseconds: 444),
           child: InkWell(
-              onTap: player == battle.enemy ? null : () => battle.toggleUnitActive(unit), child: UnitCardView(unit)),
+            onTap: player == battle.enemy ? null : () => battle.toggleUnitActive(unit),
+            onSecondaryTapDown: (_) => showUnitInfo(unit),
+            onSecondaryTapUp: (_) => showUnitInfo(),
+            onSecondaryTapCancel: () => showUnitInfo(),
+            child: UnitCardView(unit),
+          ),
         );
       });
     }
@@ -211,5 +221,57 @@ class _BattleViewState extends State<BattleView> {
       child: PlayerCardView(player: player),
     );
     yield* unitMapper(player.activeUnits);
+  }
+
+  showUnitInfo([UnitCard? unit]) {
+    setState(() {
+      _infoUnit = unit;
+    });
+  }
+}
+
+class UnitInfoView extends StatelessWidget {
+  final UnitCard unit;
+
+  const UnitInfoView(this.unit, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Container(
+        padding: const EdgeInsets.all(9),
+        child: IntrinsicWidth(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(unit.image, width: 222),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: Text(
+                  unit.name,
+                  softWrap: false,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                  // style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                ),
+              ),
+              Row(
+                // mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    '⚔ ${unit.attack}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    '⛨ ${unit.defence}',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

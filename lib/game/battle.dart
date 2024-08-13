@@ -11,15 +11,20 @@ abstract class UnitCard {
 
   BattlePlayer get player => _player;
 
-  int get damage;
+  int get attack;
+
+  int get defence;
 }
 
 class Peasant extends UnitCard {
   @override
-  get image => 'assets/units/medieval-peasant-cartoon-composition-vector-41944465.jpg';
+  get image => 'assets/units/фермер.png';
 
   @override
-  int get damage => 1;
+  int get attack => 1;
+
+  @override
+  int get defence => 1;
 }
 
 class Skeleton extends UnitCard {
@@ -27,7 +32,10 @@ class Skeleton extends UnitCard {
   get image => 'assets/units/скелет.png';
 
   @override
-  int get damage => 2;
+  int get attack => 2;
+
+  @override
+  int get defence => 1;
 }
 
 class BattlePlayer {
@@ -86,7 +94,7 @@ class Battle {
       stage!.lastAttacker = unit;
       onChangeNotifier();
       await Future.delayed(const Duration(seconds: 1));
-      if (!isAttackerBlocked(unit)) defender.hp -= unit.damage;
+      if (!isAttackerBlocked(unit)) defender.hp -= unit.attack;
       stage!.attackingUnit = null;
       onChangeNotifier();
       if (defender.hp < -0) break;
