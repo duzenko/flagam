@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Card Game',
+      title: 'Game',
       theme: ThemeData(
         useMaterial3: true,
       ),
@@ -34,7 +34,9 @@ class _MyHomePageState extends State<MyHomePage> {
     final province = World.provinces.first;
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
+      body: Container(
+        // color: Colors.red,
+        alignment: Alignment.center,
         child: ProvinceView(province: province),
       ),
     );

@@ -33,6 +33,8 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/arena/
+    - assets/story/
     - assets/units/
 
   # An image asset can refer to one or more resolution-specific "variants", see

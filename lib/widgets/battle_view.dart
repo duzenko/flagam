@@ -107,6 +107,7 @@ class _BattleViewState extends State<BattleView> {
                     return Stack(
                       alignment: Alignment.center,
                       children: [
+                        Positioned.fill(child: Image.asset('assets/arena/Woodshed_I.webp', fit: BoxFit.cover)),
                         ...playerWidgets(battle.player),
                         ...playerWidgets(battle.enemy),
                         if (battle.stage?.attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),

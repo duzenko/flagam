@@ -33,6 +33,9 @@ class Town extends ProvinceAsset {
   Town() {
     owner = World.players.first;
   }
+
+  @override
+  get mapName => 'Ancient Ruins';
 }
 
 class Sawmill extends ProvinceObject {}
