@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flagam/generated/l10n.dart';
+
 class BattleCard {}
 
 abstract class UnitCard {
@@ -7,7 +9,7 @@ abstract class UnitCard {
 
   String get image;
 
-  String get name => runtimeType.toString();
+  String get name;
 
   BattlePlayer get player => _player;
 
@@ -25,6 +27,9 @@ class Peasant extends UnitCard {
 
   @override
   int get defence => 1;
+
+  @override
+  String get name => S.current.peasant;
 }
 
 class Skeleton extends UnitCard {
@@ -36,6 +41,9 @@ class Skeleton extends UnitCard {
 
   @override
   int get defence => 1;
+
+  @override
+  String get name => S.current.skeleton;
 }
 
 class BattlePlayer {

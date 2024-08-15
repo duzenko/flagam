@@ -21,6 +21,9 @@ dependencies:
 
   align_positioned:
   collection:
+  intl: any
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
@@ -29,13 +32,12 @@ dev_dependencies:
   flutter_lints:
 
 flutter:
-
-  uses-material-design: true
-
   assets:
     - assets/arena/
     - assets/story/
     - assets/units/
+  generate: true # Add this line
+  uses-material-design: true
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -62,3 +64,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+flutter_intl:
+  enabled: true

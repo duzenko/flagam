@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flagam/generated/l10n.dart';
 import 'package:flutter/material.dart';
 
 class Province {
@@ -10,23 +11,21 @@ class Province {
   ];
 }
 
-class ProvinceObject {
+abstract class ProvinceObject {
   final x = (Random().nextInt(80) + 3) * Province.size / 100;
   final y = (Random().nextInt(80) + 3) * Province.size / 100;
   Player? owner;
 
-  get mapName => runtimeType.toString();
+  String get mapName;
 
   get size => Province.size / 8;
 }
-
-class ProvinceAsset extends ProvinceObject {}
 
 class Player {
   final color = Colors.purple;
 }
 
-class Town extends ProvinceAsset {
+class Town extends ProvinceObject {
   @override
   get size => Province.size / 7;
 
@@ -35,10 +34,13 @@ class Town extends ProvinceAsset {
   }
 
   @override
-  get mapName => 'Ancient Ruins';
+  get mapName => S.current.ruins;
 }
 
-class Sawmill extends ProvinceObject {}
+class Sawmill extends ProvinceObject {
+  @override
+  String get mapName => S.current.sawmill;
+}
 
 class World {
   static final player = Player();

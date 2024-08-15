@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flagam/game/battle.dart';
 import 'package:flagam/game/province.dart';
 import 'package:flagam/game/story.dart';
+import 'package:flagam/generated/l10n.dart';
 import 'package:flagam/widgets/battle_view.dart';
 import 'package:flutter/material.dart';
 
@@ -59,7 +60,7 @@ class _ProvinceViewState extends State<ProvinceView> {
                         child: Padding(
                           padding: const EdgeInsets.all(9),
                           child: Text(
-                            'This is the ruins where you\'ve been hiding from the world',
+                            S.of(context).ruinsDesc,
                             softWrap: true,
                             style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Colors.white),
                           ),
@@ -185,7 +186,8 @@ class StoryChapterView extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(9),
                   child: Text(
-                    Story.chapters.first.text,
+                    S.of(context).chapter1,
+                    // Story.chapters.first.text,
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white),
                   ),
                 ),
