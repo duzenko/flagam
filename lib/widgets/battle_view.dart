@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:collection/collection.dart';
 import 'package:flagam/game/battle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 late BoxConstraints battleViewConstraints;
@@ -128,7 +129,7 @@ class _BattleViewState extends State<BattleView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(onPressed: () => winClick(context), child: const Text('Win Quick')),
+                if (kDebugMode) ElevatedButton(onPressed: () => winClick(context), child: const Text('Win Quick')),
                 Text(
                   battle.attacker == battle.player ? 'Player attacks' : 'Enemy attacks',
                   style: const TextStyle(color: Colors.white, fontSize: 20),
@@ -141,7 +142,8 @@ class _BattleViewState extends State<BattleView> {
   }
 
   void winClick(BuildContext context) {
-    Navigator.of(context).pop(1);
+    battle.enemy.hp = 0;
+    Navigator.of(context).pop(battle);
   }
 
   var _lastClick = DateTime.now();

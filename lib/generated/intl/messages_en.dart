@@ -23,12 +23,18 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "chapter1": MessageLookupByLibrary.simpleMessage(
-            "The old emperor is dead and the civil war has already started. It\'s time for the old necromancer to once again roll the dice of fate!"),
+            "War requires resources. It is logical to start with something simpler - for example, the nearest sawmill."),
+        "epilogue": MessageLookupByLibrary.simpleMessage(
+            "All enemies are defeated! All you can do is reap the fruits of a glorious victory and write your memoirs."),
         "peasant": MessageLookupByLibrary.simpleMessage("Peasant"),
+        "prologue": MessageLookupByLibrary.simpleMessage(
+            "The old emperor is dead and the civil war has already started. It\'s time for the old necromancer to once again roll the dice of fate!"),
         "ruins": MessageLookupByLibrary.simpleMessage("Ancient Ruins"),
         "ruinsDesc": MessageLookupByLibrary.simpleMessage(
-            "This is the ruins where you\'ve been hiding from the world"),
+            "In these ruins you hid from the cruel world, and now they will become the new capital of the world."),
         "sawmill": MessageLookupByLibrary.simpleMessage("Sawmill"),
+        "sawmillDesc": MessageLookupByLibrary.simpleMessage(
+            "The workers are hard at work, bringing your triumph closer."),
         "skeleton": MessageLookupByLibrary.simpleMessage("Skeleton")
       };
 }

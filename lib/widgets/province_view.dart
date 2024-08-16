@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:align_positioned/align_positioned.dart';
 import 'package:flagam/game/battle.dart';
 import 'package:flagam/game/province.dart';
 import 'package:flagam/game/story.dart';
-import 'package:flagam/generated/l10n.dart';
 import 'package:flagam/widgets/battle_view.dart';
 import 'package:flutter/material.dart';
 
@@ -51,7 +51,7 @@ class _ProvinceViewState extends State<ProvinceView> {
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    Image.asset('assets/arena/52246834659_2628252ee8_b.jpg'),
+                    Image.asset(provinceObject.popupImage),
                     Positioned(
                       left: 0,
                       right: 0,
@@ -60,7 +60,7 @@ class _ProvinceViewState extends State<ProvinceView> {
                         child: Padding(
                           padding: const EdgeInsets.all(9),
                           child: Text(
-                            S.of(context).ruinsDesc,
+                            provinceObject.popupText,
                             softWrap: true,
                             style: Theme.of(context).textTheme.titleMedium!.copyWith(color: Colors.white),
                           ),
@@ -108,64 +108,97 @@ class _ProvinceViewState extends State<ProvinceView> {
         provinceObject.owner = World.player;
       });
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${provinceObject.mapName} is now yours!'), /**/
-        ));
+        showDialog(
+            context: context,
+            builder: (ctx) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: StoryChapterView(Story.epilogue),
+                ));
+        // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        //   content: Text('${provinceObject.mapName} is now yours!'), /**/
+        // ));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 512,
-      height: 512,
-      color: Colors.green,
-      child: Stack(
-        children: widget.province.objects
-            .map(
-              (ProvinceObject provinceObject) => Positioned(
-                left: provinceObject.x.toDouble(),
-                top: provinceObject.y.toDouble(),
-                child: FilledButton(
-                  onPressed: () => clickObject(context, provinceObject),
-                  style: FilledButton.styleFrom(
-                      backgroundColor: provinceObject.owner?.color ?? Colors.grey,
-                      padding: EdgeInsets.all(provinceObject.size / 3)),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.ac_unit_rounded,
-                        size: provinceObject.size / 3,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(),
+        Container(
+          width: 512,
+          height: 512,
+          color: Colors.green,
+          child: Stack(
+            alignment: Alignment.center,
+            children: widget.province.objects
+                .map(
+                  (ProvinceObject provinceObject) => AlignPositioned(
+                    alignment: Alignment.center,
+                    dx: provinceObject.x.toDouble() - 256,
+                    dy: provinceObject.y.toDouble() - 256,
+                    child: FilledButton(
+                      onPressed: () => clickObject(context, provinceObject),
+                      style: FilledButton.styleFrom(
+                          backgroundColor: provinceObject.owner?.color ?? Colors.grey,
+                          padding: EdgeInsets.all(provinceObject.size / 3)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.ac_unit_rounded,
+                            size: provinceObject.size / 3,
+                          ),
+                          Text(
+                            provinceObject.mapName,
+                            softWrap: false,
+                            style: TextStyle(fontSize: provinceObject.size / 5),
+                          ),
+                        ],
                       ),
-                      Text(
-                        provinceObject.mapName,
-                        softWrap: false,
-                        style: TextStyle(fontSize: provinceObject.size / 5),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            )
-            .toList(),
-      ),
+                )
+                .toList(),
+          ),
+        ),
+        IconButton(
+          onPressed: tapQuestBtn,
+          color: Colors.yellow,
+          tooltip: 'Quest Info',
+          icon: const Icon(Icons.assignment_late_outlined),
+          padding: const EdgeInsets.all(33),
+        ),
+      ],
     );
   }
 
   showStoryPopup() {
     showDialog(
         context: context,
-        builder: (ctx) => const Dialog(
+        builder: (ctx) => Dialog(
               backgroundColor: Colors.transparent,
-              child: StoryChapterView(),
+              child: StoryChapterView(Story.prologue),
+            ));
+  }
+
+  void tapQuestBtn() {
+    showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+              backgroundColor: Colors.transparent,
+              child: StoryChapterView(Story.chapters.first),
               // child: StoryChapterView(),
             ));
   }
 }
 
 class StoryChapterView extends StatelessWidget {
-  const StoryChapterView({super.key});
+  final StoryChapter chapter;
+
+  const StoryChapterView(this.chapter, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -173,21 +206,19 @@ class StoryChapterView extends StatelessWidget {
       onTap: Navigator.of(context).pop,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(33),
-        // clipBehavior: Clip.antiAlias,
         child: SizedBox(
-          // padding: EdgeInsets.all(9),
           width: 666,
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
-              Image.asset(Story.chapters.first.image),
+              Image.asset(chapter.image),
               Card(
+                margin: const EdgeInsets.all(16),
                 color: Colors.black12,
                 child: Padding(
                   padding: const EdgeInsets.all(9),
                   child: Text(
-                    S.of(context).chapter1,
-                    // Story.chapters.first.text,
+                    chapter.text,
                     style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.white),
                   ),
                 ),

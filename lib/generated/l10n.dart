@@ -51,10 +51,30 @@ class S {
   }
 
   /// `The old emperor is dead and the civil war has already started. It's time for the old necromancer to once again roll the dice of fate!`
-  String get chapter1 {
+  String get prologue {
     return Intl.message(
       'The old emperor is dead and the civil war has already started. It\'s time for the old necromancer to once again roll the dice of fate!',
+      name: 'prologue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `War requires resources. It is logical to start with something simpler - for example, the nearest sawmill.`
+  String get chapter1 {
+    return Intl.message(
+      'War requires resources. It is logical to start with something simpler - for example, the nearest sawmill.',
       name: 'chapter1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All enemies are defeated! All you can do is reap the fruits of a glorious victory and write your memoirs.`
+  String get epilogue {
+    return Intl.message(
+      'All enemies are defeated! All you can do is reap the fruits of a glorious victory and write your memoirs.',
+      name: 'epilogue',
       desc: '',
       args: [],
     );
@@ -70,6 +90,16 @@ class S {
     );
   }
 
+  /// `The workers are hard at work, bringing your triumph closer.`
+  String get sawmillDesc {
+    return Intl.message(
+      'The workers are hard at work, bringing your triumph closer.',
+      name: 'sawmillDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Ancient Ruins`
   String get ruins {
     return Intl.message(
@@ -80,10 +110,10 @@ class S {
     );
   }
 
-  /// `This is the ruins where you've been hiding from the world`
+  /// `In these ruins you hid from the cruel world, and now they will become the new capital of the world.`
   String get ruinsDesc {
     return Intl.message(
-      'This is the ruins where you\'ve been hiding from the world',
+      'In these ruins you hid from the cruel world, and now they will become the new capital of the world.',
       name: 'ruinsDesc',
       desc: '',
       args: [],
