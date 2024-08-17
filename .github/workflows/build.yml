@@ -19,9 +19,14 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: generated files
+        run: |
+          flutter pub global activate intl_utils
+          flutter pub global run intl_utils:generate
+
       - name: Start Web Release Build
         run: flutter build web --release --base-href="/flagam/"
-     
+
       - name: Upload Web Build Files
         uses: actions/upload-pages-artifact@v3
         with:
