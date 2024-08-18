@@ -8,5 +8,6 @@
   "ruins": "Ancient Ruins",
   "ruinsDesc": "In these ruins you hid from the cruel world, and now they will become the new capital of the world.",
   "peasant": "Peasant",
-  "skeleton": "Skeleton"
+  "skeleton": "Skeleton",
+  "battle_info": "Click on a unit to send it to attack.\nDouble clicking on the playing field ends the turn."
 }

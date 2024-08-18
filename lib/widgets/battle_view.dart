@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:collection/collection.dart';
 import 'package:flagam/game/battle.dart';
+import 'package:flagam/generated/l10n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 late BoxConstraints battleViewConstraints;
 
@@ -58,7 +60,7 @@ class PlayerCardView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.network(height: 111, player.image),
+              Image.asset(height: 111, player.image),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -85,6 +87,14 @@ class _BattleViewState extends State<BattleView> {
   late final battle = Battle(() => setState(() {}));
 
   @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) {
+      if (prefs.getBool('battle_hint') ?? true) tapInfoBtn();
+    });
+  }
+
+  @override
   void dispose() {
     battle.onChangeNotifier = () {};
     super.dispose();
@@ -100,8 +110,7 @@ class _BattleViewState extends State<BattleView> {
               onTap: () => onDoubleTap(context),
               behavior: HitTestBehavior.translucent,
               child: Container(
-                margin: EdgeInsets.all(constraints.biggest.height * 0.1),
-                color: Colors.green,
+                margin: EdgeInsets.symmetric(vertical: constraints.biggest.height * 0.1),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     battleViewConstraints = constraints;
@@ -129,6 +138,12 @@ class _BattleViewState extends State<BattleView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                IconButton(
+                  onPressed: tapInfoBtn,
+                  color: Colors.yellow,
+                  tooltip: 'Help',
+                  icon: const Icon(Icons.question_mark),
+                ),
                 if (kDebugMode) ElevatedButton(onPressed: () => winClick(context), child: const Text('Win Quick')),
                 Text(
                   battle.attacker == battle.player ? 'Player attacks' : 'Enemy attacks',
@@ -230,6 +245,33 @@ class _BattleViewState extends State<BattleView> {
     setState(() {
       _infoUnit = unit;
     });
+  }
+
+  void tapInfoBtn() {
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setBool('battle_hint', false);
+    });
+    showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+              child: GestureDetector(
+                onTap: Navigator.of(context).pop,
+                child: Padding(
+                  padding: const EdgeInsets.all(11),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.book, size: 44),
+                      Text(
+                        S.current.battle_info,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // child: StoryChapterView(),
+            ));
   }
 }
 

@@ -72,14 +72,12 @@ class Battle {
   final player = BattlePlayer([
     Skeleton(),
     Skeleton(),
-    Skeleton(),
-  ], 'https://masterpiecer-images.s3.yandex.net/739bce5e7c8e11ee9fd7aaafe6635749:upscaled', 'Player');
+  ], 'assets/arena/739bce5e7c8e11ee9fd7aaafe6635749_upscaled.jfif', 'Player');
   final enemy = BattlePlayer([
     Peasant(),
     Peasant(),
     Peasant(),
-  ], 'https://static.wikia.nocookie.net/officialbestiary/images/5/56/Anouki1.png/revision/latest?cb=20150622175528',
-      'Ilkebel');
+  ], 'assets/arena/Anouki1.webp', 'Ilkebel');
   bool _attackerIsPlayer = true;
 
   VoidCallback onChangeNotifier;

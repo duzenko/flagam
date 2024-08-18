@@ -20,7 +20,7 @@ class _ProvinceViewState extends State<ProvinceView> {
   @override
   initState() {
     super.initState();
-    Timer.run(() => showStoryPopup());
+    Timer.run(() => showStoryPopup().then((_) => tapQuestBtn()));
     // Timer.run(() => clickObject(context, widget.province.objects.last));
   }
 
@@ -94,15 +94,8 @@ class _ProvinceViewState extends State<ProvinceView> {
   }
 
   Future<void> showBattleDialog(BuildContext context, ProvinceObject provinceObject) async {
-    Battle? battle = await Navigator.of(context).push(PageRouteBuilder(
-        opaque: false,
-        barrierDismissible: true,
-        pageBuilder: (BuildContext context, _, __) {
-          return const Material(
-            color: Colors.transparent,
-            child: BattleView(),
-          );
-        }));
+    Battle? battle = await showDialog(
+        context: context, builder: (ctx) => const Dialog(backgroundColor: Colors.transparent, child: BattleView()));
     if (battle != null && battle.enemy.hp <= 0) {
       setState(() {
         provinceObject.owner = World.player;
@@ -176,7 +169,7 @@ class _ProvinceViewState extends State<ProvinceView> {
   }
 
   showStoryPopup() {
-    showDialog(
+    return showDialog(
         context: context,
         builder: (ctx) => Dialog(
               backgroundColor: Colors.transparent,
