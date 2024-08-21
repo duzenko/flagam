@@ -9,12 +9,29 @@ class Province {
   List<ProvinceObject> objects = [
     Town(),
     Sawmill(),
+    OrePit(),
   ];
+
+  Province() {
+    for (final obj in objects) {
+      bool ok = true;
+      do {
+        obj.x = (Random().nextInt(80) + 10) * Province.size / 100;
+        obj.y = (Random().nextInt(80) + 10) * Province.size / 100;
+        ok = true;
+        for (final obj2 in objects) {
+          if (obj2 == obj) continue;
+          if ((obj2.x - obj.x).abs() < 44) ok = false;
+          if ((obj2.y - obj.y).abs() < 44) ok = false;
+        }
+      } while (!ok);
+    }
+  }
 }
 
 abstract class ProvinceObject {
-  final x = (Random().nextInt(80) + 10) * Province.size / 100;
-  final y = (Random().nextInt(80) + 10) * Province.size / 100;
+  double x = 0;
+  double y = 0;
   Player? owner;
 
   String get mapName;
@@ -57,6 +74,17 @@ class Sawmill extends ProvinceObject {
 
   @override
   String get popupText => S.current.sawmillDesc;
+}
+
+class OrePit extends ProvinceObject {
+  @override
+  String get mapName => S.current.orePit;
+
+  @override
+  String get popupImage => 'assets/arena/Woodshed_I.webp';
+
+  @override
+  String get popupText => S.current.orePitDesc;
 }
 
 class World {

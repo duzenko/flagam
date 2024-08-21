@@ -77,7 +77,7 @@ class Battle {
     Peasant(),
     Peasant(),
     Peasant(),
-  ], 'assets/arena/Anouki1.webp', 'Ilkebel');
+  ], 'assets/arena/хазяин лісопилки-01.png', 'Ilkebel');
   bool _attackerIsPlayer = true;
 
   VoidCallback onChangeNotifier;

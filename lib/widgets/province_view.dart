@@ -100,12 +100,13 @@ class _ProvinceViewState extends State<ProvinceView> {
       setState(() {
         provinceObject.owner = World.player;
       });
+      Story.progress();
       if (context.mounted) {
         showDialog(
             context: context,
             builder: (ctx) => Dialog(
                   backgroundColor: Colors.transparent,
-                  child: StoryChapterView(Story.epilogue),
+                  child: StoryChapterView(Story.current),
                 ));
         // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         //   content: Text('${provinceObject.mapName} is now yours!'), /**/
@@ -182,7 +183,7 @@ class _ProvinceViewState extends State<ProvinceView> {
         context: context,
         builder: (ctx) => Dialog(
               backgroundColor: Colors.transparent,
-              child: StoryChapterView(Story.chapters.first),
+              child: StoryChapterView(Story.current),
               // child: StoryChapterView(),
             ));
   }
