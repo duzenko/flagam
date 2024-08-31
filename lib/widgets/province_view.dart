@@ -95,10 +95,15 @@ class _ProvinceViewState extends State<ProvinceView> {
 
   Future<void> showBattleDialog(BuildContext context, ProvinceObject provinceObject) async {
     Battle? battle = await showDialog(
-        context: context, builder: (ctx) => const Dialog(backgroundColor: Colors.transparent, child: BattleView()));
+        context: context,
+        builder: (ctx) => Dialog(
+              backgroundColor: Colors.transparent,
+              child: BattleView(provinceObject),
+            ));
     if (battle != null && battle.enemy.hp <= 0) {
       setState(() {
         provinceObject.owner = World.player;
+        World.player.army = [Skeleton(), Zombie(), Skeleton()];
       });
       Story.progress();
       if (context.mounted) {

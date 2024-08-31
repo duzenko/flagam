@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:collection/collection.dart';
 import 'package:flagam/game/battle.dart';
+import 'package:flagam/game/province.dart';
 import 'package:flagam/generated/l10n.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,10 @@ class PlayerCardView extends StatelessWidget {
 }
 
 class BattleView extends StatefulWidget {
-  const BattleView({
+  final ProvinceObject provinceObject;
+
+  const BattleView(
+    this.provinceObject, {
     super.key,
   });
 
@@ -84,7 +88,7 @@ class BattleView extends StatefulWidget {
 }
 
 class _BattleViewState extends State<BattleView> {
-  late final battle = Battle(() => setState(() {}));
+  late final battle = Battle(widget.provinceObject);
 
   @override
   void initState() {
@@ -92,6 +96,7 @@ class _BattleViewState extends State<BattleView> {
     SharedPreferences.getInstance().then((prefs) {
       if (prefs.getBool('battle_hint') ?? true) tapInfoBtn();
     });
+    battle.onChangeNotifier = () => setState(() {});
   }
 
   @override
@@ -117,7 +122,7 @@ class _BattleViewState extends State<BattleView> {
                     return Stack(
                       alignment: Alignment.center,
                       children: [
-                        Positioned.fill(child: Image.asset('assets/arena/Woodshed_I.webp', fit: BoxFit.cover)),
+                        Positioned.fill(child: Image.asset(widget.provinceObject.popupImage, fit: BoxFit.cover)),
                         ...playerWidgets(battle.player),
                         ...playerWidgets(battle.enemy),
                         if (battle.stage?.attackingUnit != null) const Text('⚔', style: TextStyle(fontSize: 32)),

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flagam/game/province.dart';
 import 'package:flagam/generated/l10n.dart';
 
 class BattleCard {}
@@ -46,15 +47,34 @@ class Skeleton extends UnitCard {
   String get name => S.current.skeleton;
 }
 
+class Zombie extends UnitCard {
+  @override
+  get image => 'assets/units/4b7877538ac3cb30fa2b68ddea9b2007c7d975f6_2000x2000.webp';
+
+  @override
+  int get attack => 3;
+
+  @override
+  int get defence => 3;
+
+  @override
+  String get name => S.current.zombie;
+}
+
 class BattlePlayer {
-  final List<UnitCard> unitsInHand;
+  final List<UnitCard> unitsInHand = [];
   final activeUnits = <UnitCard>[];
-  final String image;
-  final String name;
+
+  String get image => _player.image;
+
+  String get name => _player.name;
   int hp = 10;
   late Battle _battle;
+  Player _player;
 
-  BattlePlayer(this.unitsInHand, this.image, this.name) {
+  BattlePlayer(this._player) {
+    // this.unitsInHand, this.image, this.name
+    unitsInHand.addAll(_player.army);
     for (final unit in unitsInHand) {
       unit._player = this;
     }
@@ -69,18 +89,12 @@ class BattleActiveStage {
 }
 
 class Battle {
-  final player = BattlePlayer([
-    Skeleton(),
-    Skeleton(),
-  ], 'assets/arena/739bce5e7c8e11ee9fd7aaafe6635749_upscaled.jfif', 'Player');
-  final enemy = BattlePlayer([
-    Peasant(),
-    Peasant(),
-    Peasant(),
-  ], 'assets/arena/хазяин лісопилки-01.png', 'Ilkebel');
+  final player = BattlePlayer(World.player);
+  late BattlePlayer enemy;
   bool _attackerIsPlayer = true;
 
-  VoidCallback onChangeNotifier;
+  late VoidCallback onChangeNotifier;
+  ProvinceObject grounds;
 
   BattlePlayer get attacker => _attackerIsPlayer ? player : enemy;
 
@@ -88,7 +102,8 @@ class Battle {
 
   BattleActiveStage? stage;
 
-  Battle(this.onChangeNotifier) {
+  Battle(this.grounds) {
+    enemy = BattlePlayer(grounds.owner!);
     player._battle = this;
     enemy._battle = this;
   }
